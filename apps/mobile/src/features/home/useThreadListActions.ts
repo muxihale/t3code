@@ -127,6 +127,10 @@ function useThreadActionExecutor(
 
   const executeAction = async (action: ThreadListAction, thread: EnvironmentThreadShell) => {
     if (!checkThreadOperationPermission(thread, actionFailureTitle(action))) return false;
+    if (action === "settle" && thread.pinnedAt != null) {
+      Dialog.alert("Could not settle thread", "Unpin this thread before settling it.");
+      return false;
+    }
     const key = scopedThreadKey(thread.environmentId, thread.id);
     if (inFlightThreadKeys.current.has(key)) {
       return false;

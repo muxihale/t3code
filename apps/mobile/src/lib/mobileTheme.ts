@@ -22,15 +22,6 @@ export type MobileThemeAppearance = ThemeAppearance;
 export type MobileThemeMode = MobileThemeAppearance | "system";
 export type MobileThemeIds = Readonly<Record<MobileThemeAppearance, MobileThemeId>>;
 
-export const MOBILE_THEME_OPTIONS: ReadonlyArray<{
-  readonly id: MobileThemeId;
-  readonly label: string;
-}> = [
-  { id: DEFAULT_MOBILE_THEME_ID, label: "T3 Code" },
-  { id: "material-you", label: "Material You" },
-  ...BUILT_IN_THEMES.map((theme) => ({ id: theme.id as MobileThemeId, label: theme.label })),
-];
-
 export type MobileThemeVariable = keyof ReturnType<typeof createMobileThemeVariables>;
 export type MobileThemeVariables = Readonly<Record<MobileThemeVariable, string>>;
 
@@ -44,22 +35,13 @@ export function normalizeMobileThemeMode(value: unknown): MobileThemeMode {
   return value === "light" || value === "dark" || value === "system" ? value : "system";
 }
 
-export function resolveMobileThemeIds(preferences: {
+export function resolveMobileThemeIds(_preferences: {
   readonly themeId?: unknown;
   readonly lightThemeId?: unknown;
   readonly darkThemeId?: unknown;
 }): MobileThemeIds {
-  const legacyThemeId = normalizeMobileThemeId(preferences.themeId);
-  return {
-    light:
-      preferences.lightThemeId === undefined
-        ? legacyThemeId
-        : normalizeMobileThemeId(preferences.lightThemeId),
-    dark:
-      preferences.darkThemeId === undefined
-        ? legacyThemeId
-        : normalizeMobileThemeId(preferences.darkThemeId),
-  };
+  // F002: ignore legacy selections so every device starts and stays on Material You.
+  return { light: "material-you", dark: "material-you" };
 }
 
 export function createMobileThemeSelectionPatch(

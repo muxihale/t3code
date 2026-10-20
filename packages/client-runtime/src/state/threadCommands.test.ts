@@ -154,9 +154,7 @@ describe("remote thread lifecycle commands", () => {
               ...(action === "unsnooze" || action === "settle" || action === "pin"
                 ? { snoozedUntil: FUTURE, snoozedAt: NOW }
                 : {}),
-              ...(action === "unpin" || action === "settle"
-                ? { pinnedAt: NOW, pinOrderKey: "a" }
-                : {}),
+              ...(action === "unpin" ? { pinnedAt: NOW, pinOrderKey: "a" } : {}),
             },
           ],
         };
@@ -290,6 +288,26 @@ describe("remote thread lifecycle commands", () => {
       yield* Deferred.fail(request.reply, new Error("Thread removed"));
       yield* Effect.promise(() => result);
       expect(h.registry.get(h.visibleAtom)).toBe(removed);
+    }),
+  );
+
+  it.effect("never optimistically settles or unpins a pinned thread", () =>
+    Effect.gen(function* () {
+      const h = yield* makeHarness();
+      const pinned = {
+        ...SNAPSHOT,
+        threads: [{ ...SNAPSHOT.threads[0]!, pinnedAt: NOW, pinOrderKey: "a" }],
+      };
+      h.registry.set(h.snapshotAtom(ENVIRONMENT_ID), pinned);
+      const result = h.commands.settle.run(h.registry, {
+        environmentId: ENVIRONMENT_ID,
+        input: { threadId: THREAD_ID },
+      });
+      const request = yield* Queue.take(h.requests);
+      expect(h.registry.get(h.visibleAtom)?.threads[0]).toBe(pinned.threads[0]);
+      yield* Deferred.fail(request.reply, new Error("Unpin before settling"));
+      expect((yield* Effect.promise(() => result))._tag).toBe("Failure");
+      expect(h.registry.get(h.visibleAtom)).toBe(pinned);
     }),
   );
 

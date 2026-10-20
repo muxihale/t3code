@@ -411,9 +411,10 @@ export function createThreadEnvironmentAtoms<R, E>(
     ...commands,
     snapshotAtom: optimistic.snapshotAtom,
     settle: optimistic.wrap(commands.settle, (thread, _input, now, accepted) =>
-      !accepted &&
-      (thread.pendingRuntimeRequest !== null ||
-        ["preparing", "queued", "starting", "running", "waiting"].includes(thread.status))
+      thread.pinnedAt != null ||
+      (!accepted &&
+        (thread.pendingRuntimeRequest !== null ||
+          ["preparing", "queued", "starting", "running", "waiting"].includes(thread.status)))
         ? thread
         : {
             ...thread,

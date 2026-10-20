@@ -234,7 +234,7 @@ export function resolveSidebarDropVerb(
 ): SidebarDropVerb | null {
   if (to === null || to === from || to === "working" || to === "snoozed") return null;
   if (to === "pinned") return "pin";
-  if (to === "settled") return "settle";
+  if (to === "settled") return from === "pinned" ? null : "settle";
   if (from === "pinned") return "unpin";
   if (from === "settled") return "unsettle";
   return "wake";
@@ -343,7 +343,7 @@ export function planSidebarThreadDrop(input: {
       };
     }
     case "settled":
-      return activeSection === "settled" ? { kind: "none" } : { kind: "settle" };
+      return activePinned || activeSection === "settled" ? { kind: "none" } : { kind: "settle" };
     case "pinned": {
       const order = target.pinnedOrder;
       if (
@@ -385,6 +385,7 @@ export function applySidebarThreadDrop<
     | "unsettledAt"
   >,
 >(thread: T, section: "pinned" | "active" | "settled", now: string, orderKey?: string): T {
+  if (section === "settled" && thread.pinnedAt != null) return thread;
   const wasSettled = thread.settledOverride === "settled";
   const awake = { ...thread, snoozedAt: null, snoozedUntil: null };
   if (section === "settled") {

@@ -295,6 +295,7 @@ export function ThreadArrangementSheet(props: { onClose: () => void }) {
       if (target.section === "settled") {
         if (
           current.sourceSection !== "settled" &&
+          current.thread.pinnedAt == null &&
           configs.get(current.thread.environmentId)?.environment.capabilities.threadSettlement
         )
           destination = { section: "settled", targetId: null, placement: "before" };
@@ -425,7 +426,9 @@ export function ThreadArrangementSheet(props: { onClose: () => void }) {
                       const label = threadDragAction(item.section, section);
                       if (!label) return [];
                       if (section === "settled")
-                        return capabilities?.threadSettlement ? [{ name: section, label }] : [];
+                        return capabilities?.threadSettlement && thread.pinnedAt == null
+                          ? [{ name: section, label }]
+                          : [];
                       if (
                         ((section === "pinned" || thread.pinnedAt != null) &&
                           !capabilities?.threadPinning) ||

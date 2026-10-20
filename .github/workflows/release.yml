@@ -929,16 +929,6 @@ jobs:
             exit 1
           fi
 
-  publish_aur:
-    name: Publish AUR package
-    needs: [preflight, release]
-    if: ${{ !failure() && !cancelled() && needs.preflight.result == 'success' && needs.release.result == 'success' && needs.preflight.outputs.release_channel != 'preview' }}
-    uses: ./.github/workflows/publish-aur.yml
-    with:
-      release_tag: ${{ needs.preflight.outputs.tag }}
-    secrets:
-      AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-
   # Vercel builds the hosted web app while the desktop jobs run. `--skip-domain`
   # keeps the custom domains (the channel and router domains) on the previous
   # deployment until deploy_web aliases them, after the GitHub Release. It does

@@ -180,18 +180,22 @@ describe("settle and snooze Undo", () => {
     expect(commands.unsettle).toHaveBeenCalledOnce();
   });
 
-  it("re-pins and re-snoozes a thread that settling had cleared", async () => {
-    const snoozedUntil = "2030-01-01T09:00:00.000Z";
+  it("rejects settling a pinned thread without issuing a command or an Undo notice", async () => {
     threadShell.pinnedAt = "2026-01-01T00:00:00.000Z";
+    const result = await useThreadActions().settleThread(target);
+    expect(result._tag).toBe("Failure");
+    expect(commands.settle).not.toHaveBeenCalled();
+    expect(useThreadUndoNotice.getState().notice).toBeNull();
+  });
+
+  it("re-snoozes an unpinned thread that settling had cleared", async () => {
+    const snoozedUntil = "2030-01-01T09:00:00.000Z";
     threadShell.snoozedUntil = snoozedUntil;
     const actions = useThreadActions();
     await actions.settleThread(target);
     await currentUndo()();
     expect(commands.unsettle).toHaveBeenCalledOnce();
-    expect(commands.pin).toHaveBeenCalledExactlyOnceWith({
-      environmentId: target.environmentId,
-      input: { threadId: target.threadId, orderKey: "a0" },
-    });
+    expect(commands.pin).not.toHaveBeenCalled();
     expect(commands.snooze).toHaveBeenCalledExactlyOnceWith({
       environmentId: target.environmentId,
       input: { threadId: target.threadId, snoozedUntil },

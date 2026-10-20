@@ -646,6 +646,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   const swipeActions = resolveThreadListV2SwipeActions({
     variant,
     settlementSupported: props.settlementSupported,
+    pinned: thread.pinnedAt != null,
     snoozeSupported: props.snoozeSupported,
     snoozable: canSnooze(thread, { now: snoozeGateNow }),
     snoozed: snoozedRow,
@@ -703,7 +704,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   );
   const autoSettleMenuItems = useMemo<MenuAction[]>(
     () =>
-      props.autoSettleOptOutSupported
+      props.autoSettleOptOutSupported && thread.pinnedAt == null
         ? [
             {
               id: "auto-settle",
@@ -724,7 +725,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
             } satisfies MenuAction,
           ]
         : [],
-    [props.autoSettleOptOutSupported, thread.autoSettleDisabledAt],
+    [props.autoSettleOptOutSupported, thread.autoSettleDisabledAt, thread.pinnedAt],
   );
   const titleMenuItems = useMemo<MenuAction[]>(
     () => [
@@ -851,6 +852,14 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
     ],
   );
   const primaryAction = useMemo(() => {
+    if (swipeActions.primary === "unpin") {
+      return {
+        accessibilityLabel: `Unpin ${thread.title}`,
+        icon: "pin.slash" as const,
+        label: "Unpin",
+        onPress: handleUnpin,
+      };
+    }
     if (swipeActions.primary === "archive") {
       return {
         accessibilityLabel: `Archive ${thread.title}`,
@@ -881,6 +890,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
           onPress: handleSettle,
         };
   }, [
+    handleUnpin,
     handleArchive,
     handleSettle,
     handleUnsettle,
@@ -1269,7 +1279,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
         onSwipeableWillOpen={props.onSwipeableWillOpen}
         primaryAction={primaryAction}
         secondaryAction={secondaryAction}
-        resetKey={`${thread.environmentId}:${thread.id}:${variant}:${snoozedRow}:${thread.settledAt}:${thread.unsettledAt}:${thread.snoozedUntil}`}
+        resetKey={`${thread.environmentId}:${thread.id}:${variant}:${snoozedRow}:${thread.pinnedAt}:${thread.settledAt}:${thread.unsettledAt}:${thread.snoozedUntil}`}
         simultaneousWith={props.simultaneousSwipeGesture}
         threadTitle={thread.title}
       >
@@ -1295,7 +1305,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
                     : swipeActions.secondary === "snooze"
                       ? snoozableCardMenuActions
                       : cardMenuActions),
-            ]}
+            ].filter((action) => thread.pinnedAt == null || action.id !== "settle")}
             onPressAction={handleMenuAction}
             shouldOpenOnLongPress
           >

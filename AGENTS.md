@@ -1,5 +1,22 @@
 # T3 Code
 
+## Personal fork instructions
+
+This is Max's fork, `muxihale/t3code`, based on `pingdotgg/t3code`.
+Read [FORK.md](FORK.md) before making changes or integrating upstream updates.
+
+- Upstream supplies the foundation; preserve Max's documented custom behavior when updating it.
+- Every intentional fork change, including configuration, dependencies, and documentation, must
+  create or update an intent record in `docs/fork/changes/` in the same change. This is an explicit
+  exception to the general documentation and work-record defaults below. Imported upstream changes
+  do not need individual fork records.
+- Read relevant active records before editing affected code. Keep records current as implementations
+  move, and check their acceptance criteria after upstream updates, including changes Git merges cleanly.
+- When committing, include the relevant record ID, such as `F001`, in the commit message.
+- Do not open upstream issues, discussions, or pull requests unless Max explicitly asks. Upstream
+  contribution approval and PR tracking procedures do not apply to personal fork work. Continue to
+  follow the repository's engineering and verification guidance.
+
 T3 Code is a minimal GUI for coding agents. A Node WebSocket server wraps provider CLIs and agents (Codex, Claude Code, Cursor, Grok, OpenCode, Antigravity) and serves web, desktop, and mobile clients.
 
 You can think of T3 Code as an open source "bring-your-own-subscription" alternative to apps like Claude Desktop, Codex App, Cursor Glass and Conductor.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { getMobileThemeVariables, MOBILE_THEME_OPTIONS } from "./mobileTheme";
+import { getMobileThemeVariables, MOBILE_THEME_IDS } from "./mobileTheme";
 import { createNativeThemeColors } from "./nativeTheme";
 
 function luminance(hex: string) {
@@ -15,11 +15,10 @@ function contrast(a: string, b: string) {
   return (values[0]! + 0.05) / (values[1]! + 0.05);
 }
 
-const cases = MOBILE_THEME_OPTIONS.flatMap((theme) => {
-  if (theme.id === "material-you") return [];
-  const themeId = theme.id;
+const cases = MOBILE_THEME_IDS.flatMap((themeId) => {
+  if (themeId === "material-you") return [];
   return (["light", "dark"] as const).map((appearance) => ({
-    label: theme.label,
+    label: themeId,
     themeId,
     appearance,
   }));

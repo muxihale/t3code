@@ -176,12 +176,6 @@ Fedora:
 sudo dnf install rust cargo gcc gcc-c++ make libsecret-devel pkgconf-pkg-config ImageMagick
 ```
 
-Arch Linux:
-
-```sh
-sudo pacman -S rust base-devel libsecret pkgconf imagemagick
-```
-
 The C toolchain, pkg-config, and libsecret headers are also needed for Linux desktop development.
 
 ### macOS DMG prerequisites

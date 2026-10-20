@@ -121,7 +121,7 @@ export function buildThreadActionMenuItems(
             : { id: "pin" as const, label: "Pin thread", icon: "pin" },
         ]
       : []),
-    ...(state.supports.settlement
+    ...(state.supports.settlement && !state.isPinned
       ? [
           state.isSettled
             ? { id: "unsettle" as const, label: "Un-settle thread", icon: "circle-check" }
@@ -170,7 +170,7 @@ export function buildThreadActionMenuItems(
           },
         ]
       : []),
-    ...(state.supports.autoSettleOptOut
+    ...(state.supports.autoSettleOptOut && !state.isPinned
       ? [
           {
             id: "auto-settle" as const,

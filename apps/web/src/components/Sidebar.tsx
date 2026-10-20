@@ -3288,7 +3288,7 @@ export default function Sidebar() {
     const coSettlingKeys = new Set(threadKeys);
     for (const threadKey of threadKeys) {
       const thread = threadByKeyRef.current.get(threadKey);
-      if (!thread || thread.settledOverride === "settled") continue;
+      if (!thread || thread.pinnedAt != null || thread.settledOverride === "settled") continue;
       attemptSettle(scopeThreadRef(thread.environmentId, thread.id), { coSettlingKeys });
     }
   };
@@ -3422,6 +3422,7 @@ export default function Sidebar() {
           thread && serverConfigs.get(thread.environmentId)?.environment.capabilities;
         return (
           thread !== undefined &&
+          (action !== "settle" || thread.pinnedAt == null) &&
           sectionByThreadKeyRef.current.get(key) === originSection &&
           (action === "unsnooze"
             ? capabilities?.threadSnooze === true
@@ -3907,7 +3908,7 @@ export default function Sidebar() {
         return thread ? [thread] : [];
       });
       const settlingThreads = selectedThreads.filter(
-        (thread) => thread.settledOverride !== "settled",
+        (thread) => thread.pinnedAt == null && thread.settledOverride !== "settled",
       );
       const canSnoozeSelection = selectedThreads.every(
         (thread) =>
@@ -3943,7 +3944,7 @@ export default function Sidebar() {
               : []),
             {
               id: "settle",
-              label: `Settle (${count})`,
+              label: `Settle (${settlingThreads.length})`,
               disabled: settlingThreads.length === 0 || !canOperateThreads(settlingThreads),
             },
             ...(canSnoozeSelection
@@ -4000,7 +4001,11 @@ export default function Sidebar() {
                   const current = threadByKeyRef.current.get(
                     scopedThreadKey(scopeThreadRef(thread.environmentId, thread.id)),
                   );
-                  return current && current.settledOverride !== "settled" ? [current] : [];
+                  return current &&
+                    current.pinnedAt == null &&
+                    current.settledOverride !== "settled"
+                    ? [current]
+                    : [];
                 })
               : selectedThreads;
       if (clicked.value === "settle" && actionTargets.length === 0) return;
@@ -4836,6 +4841,7 @@ export default function Sidebar() {
                                   : "settle"
                             }
                             settlementSupported={
+                              thread.pinnedAt == null &&
                               serverConfigs.get(thread.environmentId)?.environment.capabilities
                                 .threadSettlement === true
                             }

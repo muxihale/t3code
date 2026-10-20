@@ -362,17 +362,16 @@ describe("mobile themes", () => {
     expect(normalizeMobileThemeMode("sepia")).toBe("system");
   });
 
-  it("migrates one theme choice to both appearances and preserves independent choices", () => {
-    expect(resolveMobileThemeIds({ themeId: "grove" })).toEqual({
-      light: "grove",
-      dark: "grove",
-    });
-    expect(
-      resolveMobileThemeIds({ themeId: "grove", lightThemeId: "iris", darkThemeId: "ocean" }),
-    ).toEqual({ light: "iris", dark: "ocean" });
-    expect(resolveMobileThemeIds({ themeId: "grove", lightThemeId: "missing" })).toEqual({
-      light: DEFAULT_MOBILE_THEME_ID,
-      dark: "grove",
+  it.each([
+    {},
+    { themeId: "grove" },
+    { themeId: "grove", lightThemeId: "iris", darkThemeId: "ocean" },
+    { lightThemeId: "missing", darkThemeId: null },
+    { lightThemeId: "material-you", darkThemeId: "material-you" },
+  ])("uses Material You for both appearances despite stored preferences %j", (preferences) => {
+    expect(resolveMobileThemeIds(preferences)).toEqual({
+      light: "material-you",
+      dark: "material-you",
     });
   });
 

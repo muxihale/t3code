@@ -7,6 +7,7 @@ import * as Cause from "effect/Cause";
 import { AsyncResult } from "effect/reactivity";
 import {
   animateSidebarLayoutChanges,
+  applySidebarThreadDrop,
   archiveSelectedThreadEntries,
   buildBulkTitleRegenerationContextMenuItem,
   buildBulkUnpinContextMenuItem,
@@ -2448,4 +2449,28 @@ describe("Working shelf (beta)", () => {
       });
     });
   });
+});
+
+it("does not offer or plan settling a pinned drag, but still settles active threads", () => {
+  const input = {
+    activeKey: "thread",
+    activeSection: "pinned" as const,
+    activePinned: true,
+    supportsSettlement: true,
+    target: { section: "settled" as const, pinnedOrder: [], activeOrder: [] },
+    pinnedOrder: ["thread"],
+    pinnedKeysById: new Map([["thread", "a0"]]),
+    activeOrder: [],
+    activeKeysById: new Map<string, string>(),
+  };
+  expect(resolveSidebarDropVerb("pinned", "settled")).toBeNull();
+  expect(planSidebarThreadDrop(input)).toEqual({ kind: "none" });
+  expect(planSidebarThreadDrop({ ...input, activeSection: "active", activePinned: false })).toEqual(
+    { kind: "settle" },
+  );
+});
+
+it("preserves a pin acquired before an optimistic settled drop is applied", () => {
+  const pinned = makeThread({ pinnedAt: "2026-10-20T00:00:00.000Z", pinOrderKey: "a0" });
+  expect(applySidebarThreadDrop(pinned, "settled", "2026-10-20T01:00:00.000Z")).toBe(pinned);
 });

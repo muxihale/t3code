@@ -2816,6 +2816,13 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
         });
       }
     }
+    if (command.type === "thread.settle" && thread.pinnedAt != null) {
+      return yield* new OrchestratorDispatchError({
+        commandId: command.commandId,
+        commandType: command.type,
+        cause: `Thread ${command.threadId} is pinned. Unpin it before settling.`,
+      });
+    }
     if (command.type === "thread.settle") {
       const projection = yield* loadProjectionForCommand(
         command,
@@ -3034,9 +3041,7 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
         case "thread.unarchive":
           return { ...thread, archivedAt: null, updatedAt: now };
         case "thread.settle": {
-          const wasPinned = thread.pinnedAt != null;
-          const alreadySettled =
-            thread.settledOverride === "settled" && thread.settledAt !== null && !wasPinned;
+          const alreadySettled = thread.settledOverride === "settled" && thread.settledAt !== null;
           return {
             ...thread,
             settledOverride: "settled",

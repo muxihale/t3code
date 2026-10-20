@@ -315,3 +315,14 @@ describe("pinned thread operation permissions", () => {
     expect(state.requests).toHaveLength(1);
   });
 });
+
+it("requires unpinning before settling and sends no settle command while pinned", async () => {
+  const thread = makeThread({ pinnedAt: "2026-10-20T00:00:00.000Z" });
+  const actions = useThreadListActions();
+  expect(await actions.settleThread(thread)).toBe(false);
+  expect(state.requests).toEqual([]);
+  expect(state.alerts.at(-1)?.title).toBe("Could not settle thread");
+  expect(await actions.settleThread({ ...thread, pinnedAt: null })).toBe(true);
+  expect(state.requests).toHaveLength(1);
+  expect(state.requests[0]?.action).toBe("settle");
+});

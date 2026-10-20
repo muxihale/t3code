@@ -287,6 +287,18 @@ describe("resolveThreadListV2SwipeActions", () => {
     ).toEqual({ primary: "settle", secondary: "snooze" });
   });
 
+  it("offers unpin instead of settle for a pinned thread", () => {
+    expect(
+      resolveThreadListV2SwipeActions({
+        variant: "card",
+        pinned: true,
+        settlementSupported: true,
+        snoozeSupported: true,
+        snoozable: true,
+      }),
+    ).toEqual({ primary: "unpin", secondary: "snooze" });
+  });
+
   it("offers un-settle and snooze for settled history", () => {
     expect(
       resolveThreadListV2SwipeActions({

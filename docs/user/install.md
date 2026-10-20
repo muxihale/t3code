@@ -62,16 +62,16 @@ update it with `git pull` and a rebuild.
 
 ## Desktop app
 
+This fork does not maintain Arch Linux packages or provide Arch-specific support.
+
 Download a release from [GitHub Releases](https://github.com/pingdotgg/t3code/releases),
 or use a package manager:
 
-| Platform           | Install                            |
-| ------------------ | ---------------------------------- |
-| Windows            | `winget install T3Tools.T3Code`    |
-| macOS              | `brew install --cask t3-code`      |
-| Debian, Ubuntu     | `sudo apt install ./T3-Code-*.deb` |
-| Arch Linux         | `yay -S t3code-bin`                |
-| Arch Linux nightly | `yay -S t3code-nightly-bin`        |
+| Platform       | Install                            |
+| -------------- | ---------------------------------- |
+| Windows        | `winget install T3Tools.T3Code`    |
+| macOS          | `brew install --cask t3-code`      |
+| Debian, Ubuntu | `sudo apt install ./T3-Code-*.deb` |
 
 The `.deb` updates itself like the other desktop builds. It asks for your
 password to install each update. If your desktop has no password prompt, the

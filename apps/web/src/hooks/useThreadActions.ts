@@ -72,6 +72,15 @@ export class ThreadArchiveBlockedError extends Schema.TaggedError<ThreadArchiveB
   }
 }
 
+export class ThreadSettlementBlockedError extends Schema.TaggedError<ThreadSettlementBlockedError>()(
+  "ThreadSettlementBlockedError",
+  { environmentId: EnvironmentId, threadId: ThreadId },
+) {
+  override get message(): string {
+    return "Unpin this thread before settling it.";
+  }
+}
+
 export class ThreadSettlementUnsupportedError extends Schema.TaggedError<ThreadSettlementUnsupportedError>()(
   "ThreadSettlementUnsupportedError",
   {
@@ -702,13 +711,13 @@ export function useThreadActions() {
       );
     }
     const resolved = resolveThreadTarget(target);
+    if (resolved?.thread.pinnedAt != null) {
+      return AsyncResult.failure(Cause.fail(new ThreadSettlementBlockedError(target)));
+    }
     const wokeAt = resolved
       ? threadWokeAt(resolved.thread, { now: new Date().toISOString() })
       : null;
-    // Settling also drops the pin and the snooze server-side, so Undo
-    // has to put those back as well.
-    const pinOrderKey = resolved?.thread.pinnedAt != null ? resolved.thread.pinOrderKey : null;
-    const wasPinned = resolved?.thread.pinnedAt != null;
+    // Settling clears snooze server-side, so Undo restores it.
     const snoozedUntil = resolved?.thread.snoozedUntil ?? null;
     // An older unpin/snooze Undo would re-pin or re-snooze, and the server
     // treats either as a promotion that un-settles; settling supersedes them.
@@ -732,13 +741,6 @@ export function useThreadActions() {
       undo: async () => {
         const unsettled = await unsettleThread(target);
         if (unsettled._tag !== "Success") return unsettled;
-        if (wasPinned) {
-          const pinned = await pinThread(
-            target,
-            pinOrderKey == null ? {} : { orderKey: pinOrderKey },
-          );
-          if (pinned._tag !== "Success") return pinned;
-        }
         if (snoozedUntil !== null) {
           return snoozeThreadMutation({
             environmentId: target.environmentId,

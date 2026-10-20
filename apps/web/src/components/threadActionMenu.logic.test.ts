@@ -51,16 +51,7 @@ describe("buildThreadActionMenuItems", () => {
         isSnoozed: reversed,
       });
       const expected = reversed
-        ? [
-            "unpin",
-            "unsettle",
-            "unsnooze",
-            "rename",
-            "regenerate-title",
-            "auto-settle",
-            "archive",
-            "delete",
-          ]
+        ? ["unpin", "unsnooze", "rename", "regenerate-title", "archive", "delete"]
         : [
             "pin",
             "settle",
@@ -148,9 +139,18 @@ describe("buildThreadActionMenuItems", () => {
 
   it("flips lifecycle labels with thread state", () => {
     expect(ids({ ...baseState, isPinned: true, isSettled: true, isSnoozed: true })).toEqual(
-      expect.arrayContaining(["unpin", "unsettle", "unsnooze"]),
+      expect.arrayContaining(["unpin", "unsnooze"]),
     );
     expect(ids(baseState)).toEqual(expect.arrayContaining(["pin", "settle", "snooze"]));
+  });
+
+  it("hides settlement and auto-settle choices while pinned and restores them after unpinning", () => {
+    const pinned = allIds({ ...baseState, isPinned: true });
+    expect(pinned).toContain("unpin");
+    expect(pinned).not.toContain("settle");
+    expect(pinned).not.toContain("auto-settle");
+    expect(pinned).not.toContain("auto-settle:enabled");
+    expect(allIds(baseState)).toEqual(expect.arrayContaining(["settle", "auto-settle"]));
   });
 
   it("offers auto-settle as a submenu with the current option checked", () => {

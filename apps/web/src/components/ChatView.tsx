@@ -5794,7 +5794,8 @@ export default function ChatView(props: ChatViewProps) {
       },
       "thread.settle": () => {
         if (!readEnvironmentScope(environmentId, AuthOrchestrationOperateScope)) return false;
-        if (!isServerThread || !activeThreadRef || !supportsSettlement) return;
+        if (!isServerThread || !activeThreadRef || !supportsSettlement || activeThreadPinned)
+          return;
         if (activeThreadSettled) {
           void handleUnsettleActiveThreadStable();
           return;

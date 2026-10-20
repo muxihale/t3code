@@ -1231,3 +1231,62 @@ it.effect("explicit settle clears snooze atomically and stays idempotent after r
     assert.deepInclude((yield* projections.getThreadProjection(threadId)).thread, active);
   }).pipe(Effect.provide(layerTest)),
 );
+
+it.effect(
+  "rejects manual and automatic settlement while pinned, then allows settlement after unpinning",
+  () =>
+    Effect.gen(function* () {
+      const orchestrator = yield* Orchestrator.OrchestratorV2;
+      const projections = yield* ProjectionStore.ProjectionStoreV2;
+      const threadId = ThreadId.make("thread:pinned-settlement");
+      yield* orchestrator.dispatch({
+        type: "thread.create",
+        commandId: CommandId.make("create-pinned-settlement"),
+        threadId,
+        projectId: ProjectId.make("project:pinned-settlement"),
+        title: "Pinned work",
+        modelSelection,
+        runtimeMode: "full-access",
+        interactionMode: "default",
+        branch: null,
+        worktreePath: null,
+        createdBy: "user",
+        creationSource: "web",
+      });
+      yield* orchestrator.dispatch({
+        type: "thread.pin",
+        commandId: CommandId.make("pin-before-settlement"),
+        threadId,
+        orderKey: "a0",
+      });
+      const pinned = (yield* projections.getThreadProjection(threadId)).thread;
+      for (const command of [
+        { type: "thread.settle" as const, commandId: CommandId.make("settle-pinned"), threadId },
+        {
+          type: "thread.auto-settle" as const,
+          commandId: CommandId.make("auto-settle-pinned"),
+          threadId,
+          snapshotAt: pinned.updatedAt,
+        },
+      ]) {
+        const error = yield* orchestrator.dispatch(command).pipe(Effect.flip);
+        assert.instanceOf(error, Orchestrator.OrchestratorDispatchError);
+        assert.include(String(error.cause), "pinned");
+        assert.deepEqual((yield* projections.getThreadProjection(threadId)).thread, pinned);
+      }
+      yield* orchestrator.dispatch({
+        type: "thread.unpin",
+        commandId: CommandId.make("unpin-before-settlement"),
+        threadId,
+      });
+      yield* orchestrator.dispatch({
+        type: "thread.settle",
+        commandId: CommandId.make("settle-after-unpin"),
+        threadId,
+      });
+      assert.equal(
+        (yield* projections.getThreadProjection(threadId)).thread.settledOverride,
+        "settled",
+      );
+    }).pipe(Effect.provide(layerTest)),
+);
